@@ -34,7 +34,7 @@ async function Main(accounts){
         await page.type("#forms--login > div:nth-of-type(1) > input[type=password]:nth-of-type(2)", account.split(":")[1])
         await page.click("#forms--login > div:nth-of-type(1) > input.sign-in-button")
 
-        const g = await page.evaluate(()=>{
+        await page.evaluate(()=>{
             const SI = setInterval(function(){
                 const waitfor = document.getElementsByClassName("messg messg-error")
 
