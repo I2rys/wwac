@@ -64,7 +64,8 @@ async function Main(accounts){
 
 //Main
 if(!Self_Args.length){
-    console.log("node index.js <input>")
+    console.log(`node index.js <input>
+Example: node index.js example_accounts.txt`)
     process.exit()
 }
 
